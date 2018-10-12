@@ -4,7 +4,7 @@ describe Admin::CategoriesController do
   render_views
 
   before(:each) do
-    Factory(:blog)
+    #Factory(:blog)
     #TODO Delete after removing fixtures
     Profile.delete_all
     henri = Factory(:user, :login => 'henri', :profile => Factory(:profile_admin, :label => Profile::ADMIN))
@@ -15,6 +15,7 @@ describe Admin::CategoriesController do
     get :index
     assert_response :redirect, :action => 'index'
   end
+  
 
   describe "test_edit" do
     before(:each) do
@@ -61,6 +62,34 @@ describe Admin::CategoriesController do
     assert_response :redirect, :action => 'index'
 
     assert_raise(ActiveRecord::RecordNotFound) { Category.find(test_id) }
+  end
+  
+  describe "test_new_or_edit" do
+    before(:each) do
+      get :new, :id => Factory(:category).id
+    end
+
+    
+     it 'should create new category' do
+      category = {:name => "Food", :keywords => "American Mexican", :permalink => "link", :description => "description"}
+      post :edit, :category => category
+      assigns(:category).should_not be_nil
+      assert_response :redirect, :action => "index"
+      expect(flash[:notice]).to eq('Category was successfully saved.')
+    end
+  end
+  
+  describe "delete category"do
+    before(:each) do
+      test_id = Factory(:category).id
+      assert_not_nil Category.find(test_id)
+    end
+    it "should delete category" do
+      test_id = Factory(:category).id
+      expect{ 
+        post :destroy, :id => test_id
+     }.to change(Category, :count).by(-1)
+    end
   end
   
 end
